@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Typography, notification } from 'antd';
+import { Form, Input, Typography, App } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,6 +17,7 @@ const VerifyOtpPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const { notification } = App.useApp();
   const email = location.state?.email;
 
   useEffect(() => {
@@ -42,7 +43,11 @@ const VerifyOtpPage: React.FC = () => {
         user: data.data.user,
         accessToken: data.data.accessToken
       }));
-      navigate('/');
+      if (data.data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     },
     onError: (error: any) => {
       notification.error({

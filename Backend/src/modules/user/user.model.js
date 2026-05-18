@@ -24,6 +24,26 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  phone: {
+    type: String,
+    default: '',
+  },
+  address: {
+    type: String,
+    default: '',
+  },
+  avatar: {
+    type: String,
+    default: '',
+  },
+  dob: {
+    type: Date,
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other'],
+    default: 'male',
+  },
   isVerified: {
     type: Boolean,
     default: false,

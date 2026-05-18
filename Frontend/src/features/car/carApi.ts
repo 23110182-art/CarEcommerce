@@ -26,4 +26,18 @@ export const carApi = {
     const response = await axiosInstance.get(`/cars/${idOrSlug}`);
     return response.data.data;
   },
+
+  createCar: async (data: any): Promise<Car> => {
+    const response = await axiosInstance.post('/cars', data);
+    return response.data.data;
+  },
+
+  updateCar: async (id: string, data: any): Promise<Car> => {
+    const response = await axiosInstance.patch(`/cars/${id}`, data);
+    return response.data.data;
+  },
+
+  deleteCar: async (id: string): Promise<void> => {
+    await axiosInstance.delete(`/cars/${id}`);
+  },
 };

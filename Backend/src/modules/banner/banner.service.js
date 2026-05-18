@@ -1,5 +1,6 @@
 const bannerRepository = require('./banner.repository');
 const AppError = require('../../shared/errors/AppError');
+const { deleteFromCloudinary } = require('../../shared/lib/cloudinary');
 
 class BannerService {
   async createBanner(data) {
@@ -32,6 +33,12 @@ class BannerService {
     if (!banner) {
       throw new AppError('No banner found with that ID', 404);
     }
+    
+    // Automatically delete banner image from Cloudinary
+    if (banner.image) {
+      await deleteFromCloudinary(banner.image);
+    }
+    
     return null;
   }
 }

@@ -9,6 +9,13 @@ import LoginPage from '../pages/auth/LoginPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import CarsPage from '../pages/CarsPage';
+import { ProfilePage } from '../pages/ProfilePage';
+import { CarDetailsPage } from '../pages/CarDetailsPage';
+import CarsManagementPage from '../pages/admin/CarsManagementPage';
+import BrandsManagementPage from '../pages/admin/BrandsManagementPage';
+import BannersManagementPage from '../pages/admin/BannersManagementPage';
+import UsersManagementPage from '../pages/admin/UsersManagementPage';
+import PromotionsManagementPage from '../pages/admin/PromotionsManagementPage';
 
 export const AppRouter = () => {
   return (
@@ -22,15 +29,19 @@ export const AppRouter = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/cars" element={<CarsPage />} />
+        <Route path="/cars/:idOrSlug" element={<CarDetailsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/brands" element={<div style={{ padding: 40, textAlign: 'center' }}>Brands Page (Coming Soon)</div>} />
       </Route>
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
-        <Route path="cars" element={<div>Cars Management</div>} />
-        <Route path="brands" element={<div>Brands Management</div>} />
-        <Route path="users" element={<div>Users Management</div>} />
+        <Route path="cars" element={<CarsManagementPage />} />
+        <Route path="brands" element={<BrandsManagementPage />} />
+        <Route path="banners" element={<BannersManagementPage />} />
+        <Route path="users" element={<UsersManagementPage />} />
+        <Route path="promotions" element={<PromotionsManagementPage />} />
       </Route>
     </Routes>
   );
