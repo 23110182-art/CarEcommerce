@@ -4,6 +4,8 @@ export interface Category {
   _id: string;
   name: string;
   slug: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const categoryApi = {
@@ -14,6 +16,11 @@ export const categoryApi = {
 
   createCategory: async (data: { name: string }): Promise<Category> => {
     const response = await axiosInstance.post('/categories', data);
+    return response.data.data;
+  },
+
+  updateCategory: async (id: string, data: { name: string }): Promise<Category> => {
+    const response = await axiosInstance.patch(`/categories/${id}`, data);
     return response.data.data;
   },
 

@@ -1,15 +1,30 @@
 import React, { useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, InputNumber, Switch, Upload, message, Typography, Popconfirm, Avatar, Tabs } from 'antd';
-import { Plus, Edit2, Trash2, UploadCloud, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, UploadCloud } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { carApi } from '@/features/car/carApi';
 import { brandApi } from '@/features/brand/brandApi';
 import { categoryApi } from '@/features/category/categoryApi';
 import { uploadApi } from '@/features/upload/uploadApi';
+import { formatPrice } from '@/utils/format';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
+
+type CarImageFormValue = { url: string; sort_order: number };
+
+const normalizeCarImages = (images: unknown[] | undefined): CarImageFormValue[] => {
+  if (!images?.length) return [];
+  return images
+    .map((img, index) => {
+      if (typeof img === 'string') return { url: img, sort_order: index };
+      const record = img as { url?: string; sort_order?: number };
+      if (!record.url) return null;
+      return { url: record.url, sort_order: record.sort_order ?? index };
+    })
+    .filter((img): img is CarImageFormValue => img !== null);
+};
 
 const CarsManagementPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -17,8 +32,9 @@ const CarsManagementPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const thumbnailUrl = Form.useWatch('thumbnail', form);
+
   // Image Upload States
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
   const [carImages, setCarImages] = useState<string[]>([]);
   const [isImagesUploading, setIsImagesUploading] = useState(false);
@@ -83,11 +99,10 @@ const CarsManagementPage: React.FC = () => {
     setIsThumbnailUploading(true);
     try {
       const result = await uploadApi.uploadSingle(file);
-      setThumbnailUrl(result.url);
       form.setFieldsValue({ thumbnail: result.url });
       message.success('Thumbnail uploaded!');
-    } catch {
-      message.error('Failed to upload thumbnail.');
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Failed to upload thumbnail.');
     } finally {
       setIsThumbnailUploading(false);
     }
@@ -102,22 +117,16 @@ const CarsManagementPage: React.FC = () => {
       setCarImages(newImages);
 
       // Update form value
-      const formattedImages = newImages.map((url, index) => ({ url, sort_order: index }));
-      form.setFieldsValue({ images: formattedImages });
-
       message.success('Car images uploaded!');
-    } catch {
-      message.error('Failed to upload images.');
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Failed to upload images.');
     } finally {
       setIsImagesUploading(false);
     }
   };
 
   const removeCarImage = (index: number) => {
-    const updated = carImages.filter((_, idx) => idx !== index);
-    setCarImages(updated);
-    const formattedImages = updated.map((url, idx) => ({ url, sort_order: idx }));
-    form.setFieldsValue({ images: formattedImages });
+    setCarImages(carImages.filter((_, idx) => idx !== index));
   };
 
   const handleOpen = (id: string | null = null) => {
@@ -125,17 +134,22 @@ const CarsManagementPage: React.FC = () => {
     if (id) {
       const car = carsData?.cars.find((c) => c._id === id);
       if (car) {
-        // Map details into form fields
+        const formattedImages = normalizeCarImages(car.images);
+        const thumbnail =
+          (car as { thumbnail?: string }).thumbnail ||
+          formattedImages[0]?.url ||
+          null;
+
         form.setFieldsValue({
           name: car.name,
-          brand_id: car.brand?._id || (car as any).brand_id?._id || (car as any).brand_id,
-          category_id: (car as any).category_id?._id || (car as any).category_id,
+          brand: car.brand?._id || car.brand,
+          category: car.category?._id || car.category,
           price: car.price,
-          sale_price: (car as any).sale_price,
+          salePrice: car.salePrice,
           year: car.year,
           condition: (car as any).condition || 'new',
           mileage: (car as any).mileage || 0,
-          fuel_type: (car as any).fuel_type || 'gasoline',
+          fuelType: car.fuelType || 'gasoline',
           transmission: car.transmission || 'automatic',
           seats: (car as any).seats || 4,
           color: (car as any).color || 'Black',
@@ -143,17 +157,14 @@ const CarsManagementPage: React.FC = () => {
           horsepower: (car as any).horsepower,
           stock: car.stock || 1,
           description: (car as any).description,
-          thumbnail: (car as any).thumbnail || car.images[0],
-          is_featured: car.isFeatured || (car as any).is_featured || false,
-          images: (car as any).images || car.images.map((url, idx) => ({ url, sort_order: idx })),
+          thumbnail,
+          isFeatured: car.isFeatured || false,
           features: (car as any).features || [],
         });
-        setThumbnailUrl((car as any).thumbnail || car.images[0] || null);
-        setCarImages((car as any).images?.map((img: any) => img.url) || car.images || []);
+        setCarImages(formattedImages.map((img) => img.url));
       }
     } else {
       form.resetFields();
-      setThumbnailUrl(null);
       setCarImages([]);
     }
     setIsModalOpen(true);
@@ -162,17 +173,22 @@ const CarsManagementPage: React.FC = () => {
   const handleClose = () => {
     setIsModalOpen(false);
     setEditingId(null);
-    setThumbnailUrl(null);
     setCarImages([]);
     form.resetFields();
   };
 
   const handleSubmit = (values: any) => {
-    // Form validation and standardizing parameters
+    const images: CarImageFormValue[] = carImages.map((url, index) => ({
+      url,
+      sort_order: index,
+    }));
+
+    const payload = { ...values, images };
+
     if (editingId) {
-      updateMutation.mutate({ id: editingId, data: values });
+      updateMutation.mutate({ id: editingId, data: payload });
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate(payload);
     }
   };
 
@@ -184,7 +200,7 @@ const CarsManagementPage: React.FC = () => {
       width: '100px',
       render: (_: string, record: any) => (
         <Avatar
-          src={record.thumbnail || record.images?.[0] || undefined}
+          src={record.thumbnail || (record.images?.[0] && record.images?.[0].url) || undefined}
           shape="square"
           size={50}
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}
@@ -200,7 +216,7 @@ const CarsManagementPage: React.FC = () => {
     {
       title: 'Brand',
       key: 'brand',
-      render: (_: any, record: any) => <Text style={{ color: 'var(--color-text-secondary)' }}>{record.brand?.name || record.brand_id?.name || 'Unknown'}</Text>,
+      render: (_: any, record: any) => <Text style={{ color: 'var(--color-text-secondary)' }}>{record.brand?.name || 'Unknown'}</Text>,
     },
     {
       title: 'Year',
@@ -212,14 +228,14 @@ const CarsManagementPage: React.FC = () => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      render: (p: number) => <Text style={{ color: 'var(--color-accent)', fontWeight: 600 }}>${p.toLocaleString()}</Text>,
+      render: (p: number) => <Text style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{formatPrice(p)}</Text>,
     },
     {
       title: 'Featured',
       dataIndex: 'isFeatured',
       key: 'isFeatured',
       render: (feat: boolean, record: any) => {
-        const isF = feat || record.is_featured;
+        const isF = feat || record.isFeatured;
         return <Switch checked={isF} disabled />;
       },
     },
@@ -310,7 +326,7 @@ const CarsManagementPage: React.FC = () => {
           onFinish={handleSubmit}
           style={{ marginTop: '20px' }}
         >
-          <Tabs defaultActiveKey="1" items={[
+          <Tabs defaultActiveKey="1" destroyOnHidden={false} items={[
             {
               key: '1',
               label: 'General Information',
@@ -326,7 +342,7 @@ const CarsManagementPage: React.FC = () => {
                   </Form.Item>
 
                   <Form.Item
-                    name="brand_id"
+                    name="brand"
                     label={<span style={{ color: 'var(--color-text-secondary)' }}>Brand</span>}
                     rules={[{ required: true, message: 'Please select a brand' }]}
                   >
@@ -338,7 +354,7 @@ const CarsManagementPage: React.FC = () => {
                   </Form.Item>
 
                   <Form.Item
-                    name="category_id"
+                    name="category"
                     label={<span style={{ color: 'var(--color-text-secondary)' }}>Category</span>}
                     rules={[{ required: true, message: 'Please select a category' }]}
                   >
@@ -351,15 +367,15 @@ const CarsManagementPage: React.FC = () => {
 
                   <Form.Item
                     name="price"
-                    label={<span style={{ color: 'var(--color-text-secondary)' }}>Base Price ($)</span>}
+                    label={<span style={{ color: 'var(--color-text-secondary)' }}>Base Price (VNĐ)</span>}
                     rules={[{ required: true, message: 'Please enter price' }]}
                   >
                     <InputNumber min={0} style={{ width: '100%', background: 'transparent', color: 'white' }} />
                   </Form.Item>
 
                   <Form.Item
-                    name="sale_price"
-                    label={<span style={{ color: 'var(--color-text-secondary)' }}>Sale Price ($ - Optional)</span>}
+                    name="salePrice"
+                    label={<span style={{ color: 'var(--color-text-secondary)' }}>Sale Price (VNĐ - Optional)</span>}
                   >
                     <InputNumber min={0} style={{ width: '100%', background: 'transparent', color: 'white' }} />
                   </Form.Item>
@@ -393,7 +409,7 @@ const CarsManagementPage: React.FC = () => {
                   </Form.Item>
 
                   <Form.Item
-                    name="fuel_type"
+                    name="fuelType"
                     label={<span style={{ color: 'var(--color-text-secondary)' }}>Fuel Type</span>}
                     rules={[{ required: true }]}
                     initialValue="gasoline"
@@ -442,7 +458,7 @@ const CarsManagementPage: React.FC = () => {
                   </Form.Item>
 
                   <Form.Item
-                    name="is_featured"
+                    name="isFeatured"
                     label={<span style={{ color: 'var(--color-text-secondary)' }}>Featured Vehicle</span>}
                     valuePropName="checked"
                   >
@@ -469,8 +485,6 @@ const CarsManagementPage: React.FC = () => {
                     <Text strong style={{ color: 'white', display: 'block', marginBottom: '10px' }}>Cover/Thumbnail Image URL</Text>
                     <Form.Item name="thumbnail" rules={[{ required: true, message: 'Thumbnail image is required' }]}>
                       <Input
-                        value={thumbnailUrl || undefined}
-                        onChange={(e) => setThumbnailUrl(e.target.value)}
                         placeholder="https://example.com/cover.jpg (or upload below)"
                         style={{ background: 'transparent', color: 'white', marginBottom: '10px' }}
                       />
@@ -496,8 +510,10 @@ const CarsManagementPage: React.FC = () => {
                     <Text strong style={{ color: 'white', display: 'block', marginBottom: '10px' }}>Detail Gallery Images</Text>
                     <Upload
                       multiple
-                      beforeUpload={(_, fileList) => {
-                        handleMultipleImagesUpload(fileList);
+                      beforeUpload={(file, fileList) => {
+                        if (fileList.indexOf(file) === fileList.length - 1) {
+                          handleMultipleImagesUpload(fileList);
+                        }
                         return false;
                       }}
                       showUploadList={false}

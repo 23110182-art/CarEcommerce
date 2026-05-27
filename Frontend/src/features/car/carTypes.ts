@@ -14,16 +14,17 @@ export interface Car {
   _id: string;
   name: string;
   slug: string;
-  brand_id: {
+  brand: {
     _id: string;
     name: string;
     logo?: string;
   };
-  category_id?: {
+  category?: {
     _id: string;
     name: string;
   };
   price: number;
+  salePrice?: number;
   sale_price?: number;
   applied_promotion?: {
     _id: string;
@@ -36,17 +37,17 @@ export interface Car {
   year: number;
   condition: 'new' | 'used';
   mileage: number;
-  fuel_type: 'gasoline' | 'diesel' | 'electric' | 'hybrid';
+  fuelType: 'gasoline' | 'diesel' | 'electric' | 'hybrid';
   transmission: 'manual' | 'automatic';
   seats: number;
   color: string;
   engine?: string;
   horsepower?: number;
   stock: number;
-  sold_count?: number;
+  soldCount?: number;
   description?: string;
   thumbnail: string;
-  is_featured: boolean;
+  isFeatured: boolean;
   images: CarImage[];
   features: CarFeature[];
   createdAt?: string;

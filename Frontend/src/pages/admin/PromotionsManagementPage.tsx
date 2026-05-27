@@ -7,6 +7,7 @@ import { promotionApi } from '@/features/promotion/promotionApi';
 import { brandApi } from '@/features/brand/brandApi';
 import { carApi } from '@/features/car/carApi';
 import { categoryApi } from '@/features/category/categoryApi';
+import { formatPrice } from '@/utils/format';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -154,7 +155,7 @@ const PromotionsManagementPage: React.FC = () => {
         const isPercent = record.discount_type === 'percentage';
         return (
           <Tag color={isPercent ? 'gold' : 'blue'} style={{ fontSize: '14px', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
-            {isPercent ? `-${record.discount_value}%` : `-$${record.discount_value.toLocaleString()}`}
+            {isPercent ? `-${record.discount_value}%` : `-${formatPrice(record.discount_value)}`}
           </Tag>
         );
       },
@@ -322,7 +323,7 @@ const PromotionsManagementPage: React.FC = () => {
               >
                 <Select size="large">
                   <Option value="percentage">Percentage (%)</Option>
-                  <Option value="amount">Fixed Amount ($)</Option>
+                  <Option value="amount">Fixed Amount (VNĐ)</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -418,7 +419,7 @@ const PromotionsManagementPage: React.FC = () => {
                 >
                   <Select mode="multiple" placeholder="Select specific vehicles" size="large" style={{ width: '100%' }}>
                     {carsResult?.cars.map(car => (
-                      <Option key={car._id} value={car._id}>{car.name} (${car.price.toLocaleString()})</Option>
+                      <Option key={car._id} value={car._id}>{car.name} ({formatPrice(car.price)})</Option>
                     ))}
                   </Select>
                 </Form.Item>

@@ -9,6 +9,7 @@ import { LuxuryCard } from '@/components/common/LuxuryCard';
 import { carApi } from '@/features/car/carApi';
 import { bannerApi } from '@/features/banner/bannerApi';
 import type { Car } from '@/features/car/carTypes';
+import { formatPrice } from '@/utils/format';
 
 const { Title } = Typography;
 
@@ -41,20 +42,21 @@ const CarSection = ({ title, cars, isLoading, onViewAll, onCarClick }: { title: 
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '30px' }}>
         {cars.map((car) => {
-          const hasDiscount = !!car.applied_promotion && car.sale_price !== undefined;
+          const discountedPrice = car.sale_price ?? car.salePrice;
+          const hasDiscount = !!car.applied_promotion && discountedPrice !== undefined;
           const discountTag = hasDiscount && car.applied_promotion
             ? car.applied_promotion.discount_type === 'percentage'
               ? `-${car.applied_promotion.discount_value}%`
-              : `-$${car.applied_promotion.discount_value.toLocaleString()}`
+              : `-${formatPrice(car.applied_promotion.discount_value)}`
             : undefined;
 
           return (
             <LuxuryCard 
               key={car._id}
               title={car.name}
-              subtitle={`${car.year} • ${car.transmission} • ${car.fuel_type}`}
-              price={hasDiscount && car.sale_price !== undefined ? `$${car.sale_price.toLocaleString()}` : `$${car.price.toLocaleString()}`}
-              originalPrice={hasDiscount ? `$${car.price.toLocaleString()}` : undefined}
+              subtitle={`${car.year} • ${car.transmission} • ${car.fuelType}`}
+              price={hasDiscount && discountedPrice !== undefined ? formatPrice(discountedPrice) : formatPrice(car.price)}
+              originalPrice={hasDiscount ? formatPrice(car.price) : undefined}
               discountTag={discountTag}
               imageSrc={car.thumbnail || car.images[0]?.url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000&auto=format&fit=crop'}
               onClick={() => onCarClick(car._id)}
@@ -85,7 +87,7 @@ export const HomePage: React.FC = () => {
     queryFn: carApi.getBestSellerCars,
   });
 
-  const { data: banners, isLoading: bannersLoading } = useQuery({
+  const { data: banners } = useQuery({
     queryKey: ['banners'],
     queryFn: () => bannerApi.getAllBanners(),
   });
@@ -122,7 +124,7 @@ export const HomePage: React.FC = () => {
                       {banner.title}
                     </h1>
                     {banner.link && (
-                      <LuxuryButton type="primary" onClick={() => navigate(banner.link)}>
+                      <LuxuryButton type="primary" onClick={() => navigate(banner.link as string)}>
                         Explore Showroom
                       </LuxuryButton>
                     )}
@@ -255,7 +257,7 @@ export const HomePage: React.FC = () => {
         title="Featured Vehicles" 
         cars={featuredCars} 
         isLoading={featuredLoading} 
-        onViewAll={() => navigate('/cars?is_featured=true')}
+        onViewAll={() => navigate('/cars?isFeatured=true')}
         onCarClick={(id) => navigate(`/cars/${id}`)}
       />
 

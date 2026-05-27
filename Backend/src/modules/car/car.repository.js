@@ -9,7 +9,7 @@ class CarRepository {
     const mongoose = require('mongoose');
     const isObjectId = mongoose.Types.ObjectId.isValid(idOrSlug);
     const query = isObjectId ? { _id: idOrSlug } : { slug: idOrSlug };
-    return await Car.findOne(query).populate('brand_id', 'name slug logo').populate('category_id', 'name slug');
+    return await Car.findOne(query).populate('brand', 'name slug logo').populate('category', 'name slug');
   }
 
   async updateById(id, data) {
@@ -51,9 +51,7 @@ class CarRepository {
     }
 
     // Map query string fields to DB fields
-    if (queryObj.brand) { queryObj.brand_id = queryObj.brand; delete queryObj.brand; }
-    if (queryObj.category) { queryObj.category_id = queryObj.category; delete queryObj.category; }
-    if (queryObj.fuel) { queryObj.fuel_type = queryObj.fuel; delete queryObj.fuel; }
+    
     
     // Dynamic filters based on virtuals requirements
     if (queryObj.is_new === true || queryObj.is_new === 'true') {
@@ -63,7 +61,7 @@ class CarRepository {
       delete queryObj.is_new;
     }
 
-    let dbQuery = Car.find(queryObj).populate('brand_id', 'name slug').populate('category_id', 'name slug');
+    let dbQuery = Car.find(queryObj).populate('brand', 'name slug').populate('category', 'name slug');
 
     // 2. Sorting
     if (query.sort) {

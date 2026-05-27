@@ -6,6 +6,7 @@ import { Filter, Search, X } from 'lucide-react';
 import { carApi } from '@/features/car/carApi';
 import { brandApi } from '@/features/brand/brandApi';
 import { LuxuryCard } from '@/components/common/LuxuryCard';
+import { formatPrice } from '@/utils/format';
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -22,7 +23,7 @@ const CarsPage: React.FC = () => {
   const brand = searchParams.get('brand') || undefined;
   const sort = searchParams.get('sort') || 'newest';
   const minPrice = searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : 0;
-  const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : 500000;
+  const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : 10000000000;
 
   // Queries
   const { data: brands } = useQuery({
@@ -38,7 +39,7 @@ const CarsPage: React.FC = () => {
       brand,
       sort,
       minPrice: minPrice > 0 ? minPrice : undefined,
-      maxPrice: maxPrice < 500000 ? maxPrice : undefined,
+      maxPrice: maxPrice < 10000000000 ? maxPrice : undefined,
       limit: 9
     }),
   });
@@ -95,16 +96,16 @@ const CarsPage: React.FC = () => {
           <Slider
             range
             min={0}
-            max={500000}
-            step={5000}
+            max={10000000000}
+            step={50000000}
             defaultValue={[minPrice, maxPrice]}
             onAfterChange={handlePriceChange}
-            tooltip={{ formatter: (v) => `$${v?.toLocaleString()}` }}
+            tooltip={{ formatter: (v) => formatPrice(v) }}
             style={{ marginTop: '25px' }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>$0</Text>
-            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>$500k+</Text>
+            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>0 VNĐ</Text>
+            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>10 tỷ+ VNĐ</Text>
           </div>
         </div>
       </div>
@@ -191,20 +192,21 @@ const CarsPage: React.FC = () => {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '30px' }}>
                 {data?.cars.map((car) => {
-                  const hasDiscount = !!car.applied_promotion && car.sale_price !== undefined;
+                  const discountedPrice = car.sale_price ?? car.salePrice;
+                  const hasDiscount = !!car.applied_promotion && discountedPrice !== undefined;
                   const discountTag = hasDiscount && car.applied_promotion
                     ? car.applied_promotion.discount_type === 'percentage'
                       ? `-${car.applied_promotion.discount_value}%`
-                      : `-$${car.applied_promotion.discount_value.toLocaleString()}`
+                      : `-${formatPrice(car.applied_promotion.discount_value)}`
                     : undefined;
 
                   return (
                     <LuxuryCard
                       key={car._id}
                       title={car.name}
-                      subtitle={`${car.year} • ${car.transmission} • ${car.fuel_type}`}
-                      price={hasDiscount && car.sale_price !== undefined ? `$${car.sale_price.toLocaleString()}` : `$${car.price.toLocaleString()}`}
-                      originalPrice={hasDiscount ? `$${car.price.toLocaleString()}` : undefined}
+                      subtitle={`${car.year} • ${car.transmission} • ${car.fuelType}`}
+                      price={hasDiscount && discountedPrice !== undefined ? formatPrice(discountedPrice) : formatPrice(car.price)}
+                      originalPrice={hasDiscount ? formatPrice(car.price) : undefined}
                       discountTag={discountTag}
                       imageSrc={car.thumbnail || car.images[0]?.url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000&auto=format&fit=crop'}
                       onClick={() => navigate(`/cars/${car._id}`)}

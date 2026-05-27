@@ -48,8 +48,10 @@ class PromotionService {
     if (!activePromotions || activePromotions.length === 0) return null;
 
     const carIdStr = car._id.toString();
-    const brandIdStr = car.brand_id?._id ? car.brand_id._id.toString() : car.brand_id?.toString();
-    const categoryIdStr = car.category_id?._id ? car.category_id._id.toString() : car.category_id?.toString();
+    const brandRef = car.brand || car.brand_id;
+    const categoryRef = car.category || car.category_id;
+    const brandIdStr = brandRef?._id ? brandRef._id.toString() : brandRef?.toString();
+    const categoryIdStr = categoryRef?._id ? categoryRef._id.toString() : categoryRef?.toString();
 
     let bestPromo = null;
     let maxDiscountAmount = 0;

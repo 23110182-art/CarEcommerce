@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { PublicLayout } from '../layouts/PublicLayout';
-import { AdminLayout } from '../layouts/AdminLayout';
+import AdminLayout from '../layouts/AdminLayout';
 import { HomePage } from '../pages/HomePage';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import RegisterPage from '../pages/auth/RegisterPage';
@@ -9,13 +9,15 @@ import LoginPage from '../pages/auth/LoginPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import CarsPage from '../pages/CarsPage';
-import { ProfilePage } from '../pages/ProfilePage';
-import { CarDetailsPage } from '../pages/CarDetailsPage';
+import ProfilePage from '../pages/ProfilePage';
+import CarDetailsPage from '../pages/CarDetailsPage';
+import CheckoutPage from '../pages/CheckoutPage';
 import CarsManagementPage from '../pages/admin/CarsManagementPage';
 import BrandsManagementPage from '../pages/admin/BrandsManagementPage';
 import BannersManagementPage from '../pages/admin/BannersManagementPage';
 import UsersManagementPage from '../pages/admin/UsersManagementPage';
 import PromotionsManagementPage from '../pages/admin/PromotionsManagementPage';
+import OrdersManagementPage from '../pages/admin/OrdersManagementPage';
 
 export const AppRouter = () => {
   return (
@@ -30,6 +32,7 @@ export const AppRouter = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/cars" element={<CarsPage />} />
         <Route path="/cars/:idOrSlug" element={<CarDetailsPage />} />
+        <Route path="/checkout/:carId" element={<CheckoutPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/brands" element={<div style={{ padding: 40, textAlign: 'center' }}>Brands Page (Coming Soon)</div>} />
       </Route>
@@ -42,6 +45,7 @@ export const AppRouter = () => {
         <Route path="banners" element={<BannersManagementPage />} />
         <Route path="users" element={<UsersManagementPage />} />
         <Route path="promotions" element={<PromotionsManagementPage />} />
+        <Route path="orders" element={<OrdersManagementPage />} />
       </Route>
     </Routes>
   );

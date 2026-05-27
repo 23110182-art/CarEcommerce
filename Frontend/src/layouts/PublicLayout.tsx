@@ -1,11 +1,10 @@
-import { Layout, Button, Space, Typography } from 'antd';
+import { Layout, Button, Space } from 'antd';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/features/auth/authSlice';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
 
 export const PublicLayout = () => {
   const navigate = useNavigate();
