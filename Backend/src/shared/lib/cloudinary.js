@@ -14,14 +14,38 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'car_ecommerce', // Folder name in Cloudinary
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    // transformation: [{ width: 1000, crop: 'limit' }] // Optional: auto resize
+    format: async (req, file) => {
+      const ext = file.originalname.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+        return ext;
+      }
+      return 'png'; // default fallback
+    }
   }
 });
 
 const upload = multer({ storage: storage });
 
+const deleteFromCloudinary = async (imageUrl) => {
+  if (!imageUrl) return;
+  try {
+    // Cloudinary URL structure: https://res.cloudinary.com/cloud_name/image/upload/v123456/folder/public_id.jpg
+    const parts = imageUrl.split('/');
+    const uploadIndex = parts.indexOf('upload');
+    if (uploadIndex === -1) return;
+    
+    // Public ID is the part after /upload/v123456/ (excluding file extension)
+    const publicIdWithExtension = parts.slice(uploadIndex + 2).join('/');
+    const publicId = publicIdWithExtension.substring(0, publicIdWithExtension.lastIndexOf('.'));
+    
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error('Failed to delete image from Cloudinary:', error);
+  }
+};
+
 module.exports = {
   cloudinary,
-  upload
+  upload,
+  deleteFromCloudinary
 };

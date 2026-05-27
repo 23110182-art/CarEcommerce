@@ -1,5 +1,6 @@
 const brandRepository = require('./brand.repository');
 const AppError = require('../../shared/errors/AppError');
+const { deleteFromCloudinary } = require('../../shared/lib/cloudinary');
 
 class BrandService {
   async createBrand(data) {
@@ -31,6 +32,12 @@ class BrandService {
     if (!brand) {
       throw new AppError('No brand found with that ID', 404);
     }
+    
+    // Automatically delete brand logo from Cloudinary
+    if (brand.logo) {
+      await deleteFromCloudinary(brand.logo);
+    }
+    
     return null;
   }
 }

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Layout, Typography, Input, Select, Slider, Pagination, Space, Card, Skeleton, Empty, Button, Drawer } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Filter, Search, X } from 'lucide-react';
 import { carApi } from '@/features/car/carApi';
 import { brandApi } from '@/features/brand/brandApi';
 import { LuxuryCard } from '@/components/common/LuxuryCard';
+import { formatPrice } from '@/utils/format';
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -13,6 +14,7 @@ const { Option } = Select;
 
 const CarsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Sync state with URL params
@@ -21,7 +23,7 @@ const CarsPage: React.FC = () => {
   const brand = searchParams.get('brand') || undefined;
   const sort = searchParams.get('sort') || 'newest';
   const minPrice = searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : 0;
-  const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : 500000;
+  const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : 10000000000;
 
   // Queries
   const { data: brands } = useQuery({
@@ -31,14 +33,14 @@ const CarsPage: React.FC = () => {
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['cars', { page, search, brand, sort, minPrice, maxPrice }],
-    queryFn: () => carApi.getAllCars({ 
-      page, 
-      search, 
-      brand, 
-      sort, 
-      minPrice: minPrice > 0 ? minPrice : undefined, 
-      maxPrice: maxPrice < 500000 ? maxPrice : undefined,
-      limit: 9 
+    queryFn: () => carApi.getAllCars({
+      page,
+      search,
+      brand,
+      sort,
+      minPrice: minPrice > 0 ? minPrice : undefined,
+      maxPrice: maxPrice < 10000000000 ? maxPrice : undefined,
+      limit: 9
     }),
   });
 
@@ -64,7 +66,7 @@ const CarsPage: React.FC = () => {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <div>
         <Text strong style={{ color: 'var(--color-accent)', textTransform: 'uppercase', fontSize: '12px' }}>Search</Text>
-        <Input 
+        <Input
           prefix={<Search size={16} color="var(--color-text-secondary)" />}
           placeholder="Search by name..."
           defaultValue={search}
@@ -75,8 +77,8 @@ const CarsPage: React.FC = () => {
 
       <div>
         <Text strong style={{ color: 'var(--color-accent)', textTransform: 'uppercase', fontSize: '12px' }}>Brand</Text>
-        <Select 
-          style={{ width: '100%', marginTop: '8px' }} 
+        <Select
+          style={{ width: '100%', marginTop: '8px' }}
           placeholder="All Brands"
           value={brand}
           onChange={(val) => updateParams({ brand: val })}
@@ -91,26 +93,26 @@ const CarsPage: React.FC = () => {
       <div>
         <Text strong style={{ color: 'var(--color-accent)', textTransform: 'uppercase', fontSize: '12px' }}>Price Range</Text>
         <div style={{ padding: '0 10px' }}>
-          <Slider 
-            range 
-            min={0} 
-            max={500000} 
-            step={5000}
+          <Slider
+            range
+            min={0}
+            max={10000000000}
+            step={50000000}
             defaultValue={[minPrice, maxPrice]}
             onAfterChange={handlePriceChange}
-            tipFormatter={(v) => `$${v?.toLocaleString()}`}
+            tooltip={{ formatter: (v) => formatPrice(v) }}
             style={{ marginTop: '25px' }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>$0</Text>
-            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>$500k+</Text>
+            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>0 VNĐ</Text>
+            <Text style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>10 tỷ+ VNĐ</Text>
           </div>
         </div>
       </div>
 
-      <Button 
-        block 
-        icon={<X size={16} />} 
+      <Button
+        block
+        icon={<X size={16} />}
         onClick={() => setSearchParams({})}
         style={{ marginTop: '20px' }}
       >
@@ -123,18 +125,18 @@ const CarsPage: React.FC = () => {
     <div style={{ padding: '40px 50px' }}>
       <Layout style={{ background: 'transparent' }}>
         {/* Desktop Sidebar */}
-        <Sider 
-          width={300} 
-          style={{ background: 'transparent', marginRight: '40px' }} 
-          breakpoint="lg" 
+        <Sider
+          width={300}
+          style={{ background: 'transparent', marginRight: '40px' }}
+          breakpoint="lg"
           collapsedWidth={0}
           trigger={null}
         >
-          <div style={{ 
-            background: 'var(--color-surface)', 
-            padding: '30px', 
-            borderRadius: '16px', 
-            position: 'sticky', 
+          <div style={{
+            background: 'var(--color-surface)',
+            padding: '30px',
+            borderRadius: '16px',
+            position: 'sticky',
             top: '100px',
             border: '1px solid var(--color-border)'
           }}>
@@ -149,18 +151,18 @@ const CarsPage: React.FC = () => {
               <Title level={2} style={{ color: 'white', margin: 0 }}>Exclusive Collection</Title>
               <Text style={{ color: 'var(--color-text-secondary)' }}>Showing {data?.pagination.total || 0} vehicles</Text>
             </div>
-            
+
             <Space>
-              <Button 
-                className="mobile-filter-btn" 
-                icon={<Filter size={18} />} 
+              <Button
+                className="mobile-filter-btn"
+                icon={<Filter size={18} />}
                 style={{ display: 'none' }} // Visible via media query in CSS
                 onClick={() => setIsMobileFilterOpen(true)}
               >
                 Filters
               </Button>
-              <Select 
-                defaultValue="newest" 
+              <Select
+                defaultValue="newest"
                 style={{ width: 180 }}
                 value={sort}
                 onChange={(val) => updateParams({ sort: val })}
@@ -182,26 +184,39 @@ const CarsPage: React.FC = () => {
               ))}
             </div>
           ) : data?.cars.length === 0 ? (
-            <Empty 
+            <Empty
               style={{ padding: '100px 0' }}
               description={<Text style={{ color: 'var(--color-text-secondary)' }}>No vehicles match your criteria.</Text>}
             />
           ) : (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '30px' }}>
-                {data?.cars.map((car) => (
-                  <LuxuryCard 
-                    key={car._id}
-                    title={car.name}
-                    subtitle={`${car.year} • ${car.transmission} • ${car.drivetrain}`}
-                    price={`$${car.price.toLocaleString()}`}
-                    imageSrc={car.images[0] || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000&auto=format&fit=crop'}
-                  />
-                ))}
+                {data?.cars.map((car) => {
+                  const discountedPrice = car.sale_price ?? car.salePrice;
+                  const hasDiscount = !!car.applied_promotion && discountedPrice !== undefined;
+                  const discountTag = hasDiscount && car.applied_promotion
+                    ? car.applied_promotion.discount_type === 'percentage'
+                      ? `-${car.applied_promotion.discount_value}%`
+                      : `-${formatPrice(car.applied_promotion.discount_value)}`
+                    : undefined;
+
+                  return (
+                    <LuxuryCard
+                      key={car._id}
+                      title={car.name}
+                      subtitle={`${car.year} • ${car.transmission} • ${car.fuelType}`}
+                      price={hasDiscount && discountedPrice !== undefined ? formatPrice(discountedPrice) : formatPrice(car.price)}
+                      originalPrice={hasDiscount ? formatPrice(car.price) : undefined}
+                      discountTag={discountTag}
+                      imageSrc={car.thumbnail || car.images[0]?.url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000&auto=format&fit=crop'}
+                      onClick={() => navigate(`/cars/${car._id}`)}
+                    />
+                  );
+                })}
               </div>
 
               <div style={{ marginTop: '50px', textAlign: 'center' }}>
-                <Pagination 
+                <Pagination
                   current={page}
                   total={data?.pagination.total}
                   pageSize={data?.pagination.limit}

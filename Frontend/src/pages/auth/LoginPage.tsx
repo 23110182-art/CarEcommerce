@@ -33,7 +33,11 @@ const LoginPage: React.FC = () => {
         user: data.data.user,
         accessToken: data.data.accessToken
       }));
-      navigate('/');
+      if (data.data.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     },
     onError: (error: any) => {
       notification.error({

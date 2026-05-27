@@ -1,11 +1,10 @@
-import { Layout, Button, Space, Typography } from 'antd';
+import { Layout, Button, Space } from 'antd';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/features/auth/authSlice';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
 
 export const PublicLayout = () => {
   const navigate = useNavigate();
@@ -47,10 +46,38 @@ export const PublicLayout = () => {
           <div style={{ marginLeft: '20px', borderLeft: '1px solid var(--color-border)', paddingLeft: '20px' }}>
             {isAuthenticated ? (
               <Space size="middle">
-                <Space size="small">
+                <Link 
+                  to="/profile" 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    color: 'white', 
+                    fontWeight: 500,
+                    transition: 'color 0.3s'
+                  }}
+                >
                   <UserIcon size={16} color="var(--color-accent)" />
-                  <Text style={{ color: 'white', fontWeight: 500 }}>{user?.name}</Text>
-                </Space>
+                  <span>{user?.name}</span>
+                </Link>
+                {user?.role === 'admin' && (
+                  <Link 
+                    to="/admin" 
+                    style={{ 
+                      color: 'var(--color-accent)', 
+                      marginLeft: '15px', 
+                      fontSize: '12px', 
+                      fontWeight: 'bold',
+                      border: '1px solid var(--color-accent)',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      letterSpacing: '1px',
+                      fontFamily: 'var(--font-heading)'
+                    }}
+                  >
+                    ADMIN PANEL
+                  </Link>
+                )}
                 <Button 
                   type="text" 
                   icon={<LogOut size={16} />} 
