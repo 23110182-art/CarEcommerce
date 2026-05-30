@@ -2,7 +2,7 @@ import { Layout, Button, Space } from 'antd';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/features/auth/authSlice';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Heart } from 'lucide-react';
 
 const { Header, Content, Footer } = Layout;
 
@@ -46,6 +46,19 @@ export const PublicLayout = () => {
           <div style={{ marginLeft: '20px', borderLeft: '1px solid var(--color-border)', paddingLeft: '20px' }}>
             {isAuthenticated ? (
               <Space size="middle">
+                <Link 
+                  to="/wishlist" 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    color: 'white', 
+                    transition: 'color 0.3s',
+                    marginRight: '8px'
+                  }}
+                  title="Danh sách yêu thích"
+                >
+                  <Heart size={18} color="var(--color-accent)" />
+                </Link>
                 <Link 
                   to="/profile" 
                   style={{ 

@@ -44,6 +44,18 @@ const userSchema = new mongoose.Schema({
     enum: ['male', 'female', 'other'],
     default: 'male',
   },
+  loyaltyPoints: {
+    type: Number,
+    default: 0,
+  },
+  viewedProducts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Car',
+  }],
+  wishlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Car',
+  }],
   isVerified: {
     type: Boolean,
     default: false,

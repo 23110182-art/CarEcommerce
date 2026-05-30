@@ -27,6 +27,16 @@ export const carApi = {
     return response.data.data;
   },
 
+  getSimilarCars: async (id: string): Promise<Car[]> => {
+    const response = await axiosInstance.get(`/cars/${id}/similar`);
+    return response.data.data;
+  },
+
+  getCarStats: async (id: string): Promise<{ buyersCount: number; reviewersCount: number }> => {
+    const response = await axiosInstance.get(`/cars/${id}/stats`);
+    return response.data.data;
+  },
+
   createCar: async (data: any): Promise<Car> => {
     const response = await axiosInstance.post('/cars', data);
     return response.data.data;

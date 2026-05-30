@@ -1,10 +1,10 @@
-const AppError = require('../errors/AppError');
+const AppError = require("../errors/AppError");
 
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
+  err.status = err.status || "error";
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     res.status(err.statusCode).json({
       success: false,
       status: err.status,
@@ -22,14 +22,17 @@ const globalErrorHandler = (err, req, res, next) => {
       });
     } else {
       // Programming or other unknown error
-      console.error('ERROR 💥', err);
+      console.error("ERROR 💥", err);
       res.status(500).json({
         success: false,
-        status: 'error',
-        message: 'Something went very wrong!',
+        status: "error",
+        message: "Something went very wrong!",
       });
     }
   }
+  console.log(err.name);
+  console.log(err.message);
+  console.log(err.statusCode);
 };
 
 module.exports = globalErrorHandler;

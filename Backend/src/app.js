@@ -31,6 +31,8 @@ const uploadRoutes = require('./modules/upload/upload.routes');
 const carRoutes = require('./modules/car/car.routes');
 const promotionRoutes = require('./modules/promotion/promotion.routes');
 const orderRoutes = require('./modules/order/order.routes');
+const reviewRoutes = require('./modules/review/review.routes');
+const couponRoutes = require('./modules/coupon/coupon.routes');
 
 // Mount routes
 app.use('/api/v1/auth', authRoutes);
@@ -43,6 +45,8 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/cars', carRoutes);
 app.use('/api/v1/promotions', promotionRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/coupons', couponRoutes);
 
 // Handle unhandled routes
 app.use((req, res, next) => {

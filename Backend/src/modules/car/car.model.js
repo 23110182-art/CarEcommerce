@@ -9,7 +9,6 @@ const carImageSchema = new mongoose.Schema({
 
 // Embedded Schema for Features
 const carFeatureSchema = new mongoose.Schema({
-  name: { type: String, required: true },
   value: { type: String, required: true },
 });
 
@@ -53,6 +52,8 @@ const carSchema = new mongoose.Schema(
     isFeatured: { type: Boolean, default: false },
     images: [carImageSchema],
     features: [carFeatureSchema],
+    averageRating: { type: Number, default: 0 },
+    totalReviews: { type: Number, default: 0 },
   },
   {
     timestamps: true,

@@ -24,6 +24,34 @@ class CarRepository {
     return await Car.findByIdAndDelete(id);
   }
 
+  async findSimilar(carId) {
+    const car = await Car.findById(carId);
+    if (!car) return [];
+    return await Car.find({
+      category: car.category,
+      _id: { $ne: carId },
+    }).limit(4).populate('brand', 'name slug').populate('category', 'name slug');
+  }
+
+  async getStats(carId) {
+    const Order = require('../order/order.model');
+    const Review = require('../review/review.model');
+
+    const buyersCount = await Order.countDocuments({
+      'items.car': carId,
+      status: 'completed', // Assuming 'completed' means purchased successfully
+    });
+
+    const reviewersCount = await Review.countDocuments({
+      product: carId,
+    });
+
+    return {
+      buyersCount,
+      reviewersCount,
+    };
+  }
+
   // Phức tạp nhất: Query, Filter, Pagination, Sort
   async findAllWithFilters(query) {
     const queryObj = { ...query };
