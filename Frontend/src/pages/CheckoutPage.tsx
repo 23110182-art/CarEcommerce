@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -15,11 +15,12 @@ import {
   Typography,
   message,
 } from 'antd';
-import { CreditCard, ShieldCheck, Sparkles } from 'lucide-react';
+import { CreditCard, ShieldCheck, Sparkles, Tag as TagIcon } from 'lucide-react';
 
 import { carApi } from '@/features/car/carApi';
 import type { Car } from '@/features/car/carTypes';
 import { createCodOrder } from '@/features/order/orderApi';
+import { couponApi } from '@/features/car/newFeaturesApi';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -85,7 +86,36 @@ const CheckoutPage = () => {
     });
   };
 
-  const totalPrice = selectedCar?.price ?? 0;
+  const [couponCode, setCouponCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [pointsToUse, setPointsToUse] = useState(0);
+  const [pointsDiscount, setPointsDiscount] = useState(0);
+
+  const basePrice = selectedCar?.price ?? 0;
+
+  const applyCouponMutation = useMutation({
+    mutationFn: () => couponApi.applyCoupon(couponCode, basePrice),
+    onSuccess: (data) => {
+      setDiscountAmount(data.discountAmount);
+      message.success(`Đã áp dụng mã giảm giá: Giảm ${data.discountAmount.toLocaleString('vi-VN')} VNĐ`);
+    },
+    onError: (error: any) => {
+      message.error(error?.response?.data?.message || 'Không thể áp dụng mã giảm giá này.');
+    },
+  });
+
+  const usePointsMutation = useMutation({
+    mutationFn: () => couponApi.usePoints(pointsToUse, basePrice - discountAmount),
+    onSuccess: (data) => {
+      setPointsDiscount(data.pointsValue);
+      message.success(`Đã đổi điểm thành công: Giảm ${data.pointsValue.toLocaleString('vi-VN')} VNĐ`);
+    },
+    onError: (error: any) => {
+      message.error(error?.response?.data?.message || 'Không đủ điểm tích lũy hoặc điểm không hợp lệ.');
+    },
+  });
+
+  const totalPrice = Math.max(0, basePrice - discountAmount - pointsDiscount);
 
   return (
     <div className="page-shell">
@@ -201,24 +231,76 @@ const CheckoutPage = () => {
 
                   <Divider style={{ borderColor: 'rgba(255,255,255,0.08)' }} />
 
-                  <Card
-                    size="small"
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      borderColor: 'rgba(255,255,255,0.08)',
-                      marginBottom: 24,
-                    }}
+                  <Space
+                    direction="vertical"
+                    style={{ width: '100%', marginBottom: 24 }}
+                    size={16}
                   >
-                    <Space align="start">
-                      <CreditCard size={18} style={{ marginTop: 2 }} />
-                      <div>
-                        <Text strong style={{ display: 'block' }}>
-                          Phương thức thanh toán
-                        </Text>
-                        <Text type="secondary">Thanh toán khi nhận xe (COD)</Text>
-                      </div>
-                    </Space>
-                  </Card>
+                    <div>
+                      <Space style={{ marginBottom: 8 }}>
+                        <TagIcon size={18} />
+                        <Text strong>Mã giảm giá</Text>
+                      </Space>
+                      <Input.Group compact>
+                        <Input
+                          style={{ width: 'calc(100% - 100px)' }}
+                          placeholder="Nhập mã giảm giá của bạn"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => applyCouponMutation.mutate()}
+                          loading={applyCouponMutation.isPending}
+                          disabled={!couponCode}
+                        >
+                          Áp dụng
+                        </Button>
+                      </Input.Group>
+                    </div>
+
+                    <div>
+                      <Space style={{ marginBottom: 8 }}>
+                        <CreditCard size={18} />
+                        <Text strong>Sử dụng điểm tích lũy</Text>
+                      </Space>
+                      <Input.Group compact>
+                        <Input
+                          style={{ width: 'calc(100% - 100px)' }}
+                          type="number"
+                          placeholder="Nhập số điểm muốn dùng (1000đ/điểm)"
+                          value={pointsToUse || undefined}
+                          onChange={(e) => setPointsToUse(Number(e.target.value))}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => usePointsMutation.mutate()}
+                          loading={usePointsMutation.isPending}
+                          disabled={pointsToUse <= 0}
+                        >
+                          Đổi điểm
+                        </Button>
+                      </Input.Group>
+                    </div>
+
+                    <Card
+                      size="small"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        borderColor: 'rgba(255,255,255,0.08)',
+                      }}
+                    >
+                      <Space align="start">
+                        <CreditCard size={18} style={{ marginTop: 2 }} />
+                        <div>
+                          <Text strong style={{ display: 'block' }}>
+                            Phương thức thanh toán
+                          </Text>
+                          <Text type="secondary">Thanh toán khi nhận xe (COD)</Text>
+                        </div>
+                      </Space>
+                    </Card>
+                  </Space>
 
                   <Button
                     type="primary"
@@ -283,8 +365,24 @@ const CheckoutPage = () => {
                 <Space direction="vertical" style={{ width: '100%' }} size={12}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Text type="secondary">Giá xe</Text>
-                    <Text strong>{totalPrice.toLocaleString('vi-VN')} VNĐ</Text>
+                    <Text strong>{basePrice.toLocaleString('vi-VN')} VNĐ</Text>
                   </div>
+                  {discountAmount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text type="secondary">Mã giảm giá</Text>
+                      <Text strong style={{ color: '#52c41a' }}>
+                        -{discountAmount.toLocaleString('vi-VN')} VNĐ
+                      </Text>
+                    </div>
+                  )}
+                  {pointsDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text type="secondary">Điểm tích lũy</Text>
+                      <Text strong style={{ color: '#52c41a' }}>
+                        -{pointsDiscount.toLocaleString('vi-VN')} VNĐ
+                      </Text>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Text type="secondary">Phí đặt cọc</Text>
                     <Text strong>0 VNĐ</Text>

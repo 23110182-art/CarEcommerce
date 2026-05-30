@@ -1,6 +1,6 @@
 import { Layout, Menu } from 'antd';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Car, ClipboardList, LayoutDashboard, Users, Tags, Image as ImageIcon, Percent } from 'lucide-react';
+import { Car, ClipboardList, LayoutDashboard, Users, Tags, Image as ImageIcon, Percent, Ticket } from 'lucide-react';
 
 const { Header, Sider, Content } = Layout;
 
@@ -37,6 +37,11 @@ export const AdminLayout = () => {
       key: '/admin/promotions',
       icon: <Percent size={18} />,
       label: <Link to="/admin/promotions">Promotions</Link>,
+    },
+    {
+      key: '/admin/coupons',
+      icon: <Ticket size={18} />,
+      label: <Link to="/admin/coupons">Coupons</Link>,
     },
     {
       key: '/admin/orders',

@@ -1,10 +1,15 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Col, Descriptions, Image, Row, Space, Spin, Tag, Typography } from 'antd';
-import { ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button, Card, Col, Descriptions, Image, Row, Space, Spin, Tag, Typography, message } from 'antd';
+import { ArrowLeft, Heart, ShieldCheck, Sparkles } from 'lucide-react';
 
 import { carApi } from '@/features/car/carApi';
+import { ReviewsSection } from '@/components/ReviewsSection';
+import { CarStatsSection } from '@/components/CarStatsSection';
+import { SimilarCarsSection } from '@/components/SimilarCarsSection';
+import { viewedProductsApi, wishlistApi } from '@/features/car/newFeaturesApi';
+import { useAppSelector } from '@/hooks/redux';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -12,6 +17,9 @@ const CarDetailsPage = () => {
   const { carId, idOrSlug } = useParams();
   const carLookupKey = carId || idOrSlug;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   const {
     data: car,
@@ -23,6 +31,37 @@ const CarDetailsPage = () => {
     enabled: !!carLookupKey,
   });
 
+  const { data: wishlist = [] } = useQuery({
+    queryKey: ['wishlist'],
+    queryFn: wishlistApi.getWishlist,
+    enabled: isAuthenticated,
+  });
+
+  const isWishlisted = useMemo(() => {
+    if (!car?._id || !wishlist) return false;
+    return wishlist.some((item) => item._id === car._id);
+  }, [car?._id, wishlist]);
+
+  const toggleWishlistMutation = useMutation({
+    mutationFn: () => wishlistApi.toggleWishlist(car?._id as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+      message.success(isWishlisted ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
+    },
+    onError: (err: any) => {
+      message.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật danh sách yêu thích');
+    }
+  });
+
+  const handleToggleWishlist = () => {
+    if (!isAuthenticated) {
+      message.warning('Vui lòng đăng nhập để sử dụng tính năng này');
+      navigate('/login');
+      return;
+    }
+    toggleWishlistMutation.mutate();
+  };
+
   const heroImage = useMemo(() => {
     return car?.images?.[0]?.url || car?.thumbnail || '/placeholder-car.png';
   }, [car]);
@@ -33,6 +72,12 @@ const CarDetailsPage = () => {
       state: { car },
     });
   };
+
+  useEffect(() => {
+    if (carLookupKey) {
+      viewedProductsApi.addViewedProduct(carLookupKey).catch(console.error);
+    }
+  }, [carLookupKey]);
 
   return (
     <div className="page-shell">
@@ -144,12 +189,29 @@ const CarDetailsPage = () => {
                     <Button size="large" onClick={handleCheckout}>
                       Tiến hành checkout
                     </Button>
+                    <Button
+                      size="large"
+                      icon={<Heart size={20} fill={isWishlisted ? 'var(--color-accent)' : 'none'} color={isWishlisted ? 'var(--color-accent)' : 'white'} />}
+                      onClick={handleToggleWishlist}
+                      loading={toggleWishlistMutation.isPending}
+                      style={{
+                        borderColor: isWishlisted ? 'var(--color-accent)' : 'rgba(255,255,255,0.08)',
+                        background: isWishlisted ? 'rgba(255, 215, 0, 0.1)' : 'transparent',
+                      }}
+                    >
+                      {isWishlisted ? 'Đã thích' : 'Yêu thích'}
+                    </Button>
                   </Space>
                 </Space>
               </Card>
+
+              {carLookupKey && <CarStatsSection carId={carLookupKey} />}
             </Col>
           </Row>
         )}
+
+        {carLookupKey && <ReviewsSection productId={carLookupKey} />}
+        {carLookupKey && <SimilarCarsSection carId={carLookupKey} />}
       </div>
     </div>
   );

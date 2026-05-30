@@ -12,12 +12,14 @@ import CarsPage from '../pages/CarsPage';
 import ProfilePage from '../pages/ProfilePage';
 import CarDetailsPage from '../pages/CarDetailsPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import WishlistPage from '../pages/WishlistPage';
 import CarsManagementPage from '../pages/admin/CarsManagementPage';
 import BrandsManagementPage from '../pages/admin/BrandsManagementPage';
 import BannersManagementPage from '../pages/admin/BannersManagementPage';
 import UsersManagementPage from '../pages/admin/UsersManagementPage';
 import PromotionsManagementPage from '../pages/admin/PromotionsManagementPage';
 import OrdersManagementPage from '../pages/admin/OrdersManagementPage';
+import CouponsManagementPage from '../pages/admin/CouponsManagementPage';
 
 export const AppRouter = () => {
   return (
@@ -34,6 +36,7 @@ export const AppRouter = () => {
         <Route path="/cars/:idOrSlug" element={<CarDetailsPage />} />
         <Route path="/checkout/:carId" element={<CheckoutPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/brands" element={<div style={{ padding: 40, textAlign: 'center' }}>Brands Page (Coming Soon)</div>} />
       </Route>
 
@@ -45,6 +48,7 @@ export const AppRouter = () => {
         <Route path="banners" element={<BannersManagementPage />} />
         <Route path="users" element={<UsersManagementPage />} />
         <Route path="promotions" element={<PromotionsManagementPage />} />
+        <Route path="coupons" element={<CouponsManagementPage />} />
         <Route path="orders" element={<OrdersManagementPage />} />
       </Route>
     </Routes>

@@ -1,4 +1,5 @@
 const userRepository = require('./user.repository');
+const UserRepository = userRepository;
 const AppError = require('../../shared/errors/AppError');
 
 class UserService {
@@ -58,6 +59,22 @@ class UserService {
       throw new AppError('User not found', 404);
     }
     return user;
+  }
+
+  async addViewedProduct(userId, productId) {
+    return UserRepository.addViewedProduct(userId, productId);
+  }
+
+  async getViewedProducts(userId) {
+    return UserRepository.getViewedProducts(userId);
+  }
+
+  async toggleWishlist(userId, productId) {
+    return UserRepository.toggleWishlist(userId, productId);
+  }
+
+  async getWishlist(userId) {
+    return UserRepository.getWishlist(userId);
   }
 }
 
