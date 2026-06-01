@@ -42,7 +42,7 @@ const CarSection = ({ title, cars, isLoading, onViewAll, onCarClick }: { title: 
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '30px' }}>
         {cars.map((car) => {
-          const discountedPrice = car.sale_price ?? car.salePrice;
+          const discountedPrice = car.salePrice * (1 - (car.applied_promotion?.discount_type === 'percentage' ? car.applied_promotion.discount_value / 100 : car.applied_promotion?.discount_value / car.salePrice || 0));
           const hasDiscount = !!car.applied_promotion && discountedPrice !== undefined;
           const discountTag = hasDiscount && car.applied_promotion
             ? car.applied_promotion.discount_type === 'percentage'
@@ -56,7 +56,7 @@ const CarSection = ({ title, cars, isLoading, onViewAll, onCarClick }: { title: 
               title={car.name}
               subtitle={`${car.year} • ${car.transmission} • ${car.fuelType}`}
               price={hasDiscount && discountedPrice !== undefined ? formatPrice(discountedPrice) : formatPrice(car.price)}
-              originalPrice={hasDiscount ? formatPrice(car.price) : undefined}
+              originalPrice={hasDiscount ? formatPrice(car.salePrice) : undefined}
               discountTag={discountTag}
               imageSrc={car.thumbnail || car.images[0]?.url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1000&auto=format&fit=crop'}
               onClick={() => onCarClick(car._id)}

@@ -1,26 +1,28 @@
 export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'preparing'
-  | 'shipping'
-  | 'delivered'
-  | 'cancelled';
+  | "pending"
+  | "confirmed"
+  | "preparing"
+  | "shipping"
+  | "delivered"
+  | "cancelled";
 
-export type PaymentMethod = 'cod';
+export type PaymentMethod = "cod";
 
-export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+export type PaymentStatus = "pending" | "paid" | "refunded" | "failed";
 
-export type CancelRequestStatus = 'none' | 'pending' | 'approved' | 'rejected';
+export type CancelRequestStatus = "none" | "pending" | "approved" | "rejected";
 
 export interface OrderItem {
-  car: string | {
-    _id: string;
-    name?: string;
-    price?: number;
-    stock?: number;
-    images?: Array<{ url?: string } | string>;
-    status?: string;
-  };
+  car:
+    | string
+    | {
+        _id: string;
+        name?: string;
+        price?: number;
+        stock?: number;
+        images?: Array<{ url?: string } | string>;
+        status?: string;
+      };
   carName: string;
   carImage?: string | null;
   salePrice: number;
@@ -29,13 +31,15 @@ export interface OrderItem {
 }
 
 export interface OrderCustomer {
-  user: string | {
-    _id: string;
-    name?: string;
-    email?: string;
-    phone?: string;
-    role?: string;
-  };
+  user:
+    | string
+    | {
+        _id: string;
+        name?: string;
+        email?: string;
+        phone?: string;
+        role?: string;
+      };
   name: string;
   email?: string;
   phone?: string;
@@ -57,6 +61,28 @@ export interface CancelRequest {
   admin_note?: string;
 }
 
+export interface OrderDiscount {
+  code?: string | null;
+  name?: string | null;
+  discountAmount: number;
+}
+
+export interface OrderCoupon {
+  code?: string | null;
+  discountAmount: number;
+}
+
+export interface OrderLoyaltyPoints {
+  pointsUsed: number;
+  pointsValue: number;
+}
+
+export interface OrderPromotion {
+  _id?: string | null;
+  name?: string | null;
+  discountAmount: number;
+}
+
 export interface Order {
   _id: string;
   orderNumber: string;
@@ -66,6 +92,10 @@ export interface Order {
   subtotalAmount: number;
   shippingFee: number;
   totalAmount: number;
+  originalAmount?: number;
+  coupon?: OrderCoupon;
+  loyaltyPoints?: OrderLoyaltyPoints;
+  promotion?: OrderPromotion;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -82,6 +112,10 @@ export interface OrderCreateInput {
   items: Array<{ car: string; quantity: number }>;
   shippingInfo: ShippingInfo;
   note?: string;
+  coupon?: OrderCoupon;
+  loyaltyPoints?: OrderLoyaltyPoints;
+  promotion?: OrderPromotion;
+  originalAmount?: number;
 }
 
 export interface PaginationMeta {
@@ -106,7 +140,7 @@ export interface OrderListParams {
   from?: string;
   to?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface ApiResponse<T> {

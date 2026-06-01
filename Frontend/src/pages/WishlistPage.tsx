@@ -66,7 +66,7 @@ const WishlistPage = () => {
                         {car.brand?.name}
                       </Text>
                       <Text type="success" strong style={{ fontSize: 16 }}>
-                        {Number(car.price || 0).toLocaleString("vi-VN")} VNĐ
+                        {Number(car.salePrice || 0).toLocaleString("vi-VN")} VNĐ
                       </Text>
                     </Space>
                   </Card>
