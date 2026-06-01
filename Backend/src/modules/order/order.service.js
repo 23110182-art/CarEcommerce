@@ -107,8 +107,7 @@ function resolveCarImage(car) {
 }
 
 function resolveCarPrice(car) {
-  const price =
-    car.price ?? car.current_price ?? car.salePrice ?? car.sale_price;
+  const price = car.salePrice ?? car.sale_price ?? car.price ?? car.current_price;
   const numericPrice = Number(price);
 
   if (!Number.isFinite(numericPrice) || numericPrice < 0) {
@@ -267,9 +266,38 @@ exports.createOrder = async ({ user, body }) => {
     0,
   );
   const shippingFee = Number(body.shippingFee || body.shipping_fee || 0);
-  const totalAmount =
+
+  // Extract discount info from request
+  const couponData = body.coupon
+    ? {
+        code: body.coupon.code || null,
+        discountAmount: Number(body.coupon.discountAmount || 0),
+      }
+    : { code: null, discountAmount: 0 };
+  const loyaltyPointsData = body.loyaltyPoints
+    ? {
+        pointsUsed: Number(body.loyaltyPoints.pointsUsed || 0),
+        pointsValue: Number(body.loyaltyPoints.pointsValue || 0),
+      }
+    : { pointsUsed: 0, pointsValue: 0 };
+  const promotionData = body.promotion
+    ? {
+        _id: body.promotion._id || null,
+        name: body.promotion.name || null,
+        discountAmount: Number(body.promotion.discountAmount || 0),
+      }
+    : { _id: null, name: null, discountAmount: 0 };
+  const originalAmount = Number(body.originalAmount || subtotalAmount);
+
+  // Calculate total with discounts deducted
+  const baseAmount =
     subtotalAmount +
     (Number.isFinite(shippingFee) && shippingFee > 0 ? shippingFee : 0);
+  const totalDiscount =
+    couponData.discountAmount +
+    loyaltyPointsData.pointsValue +
+    promotionData.discountAmount;
+  const totalAmount = Math.max(0, baseAmount - totalDiscount);
 
   const payload = {
     orderNumber: generateOrderNumber(),
@@ -280,6 +308,10 @@ exports.createOrder = async ({ user, body }) => {
     shippingFee:
       Number.isFinite(shippingFee) && shippingFee > 0 ? shippingFee : 0,
     totalAmount: totalAmount,
+    originalAmount: originalAmount,
+    coupon: couponData,
+    loyaltyPoints: loyaltyPointsData,
+    promotion: promotionData,
     status: "pending",
     paymentMethod: "cod",
     paymentStatus: "pending",

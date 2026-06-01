@@ -132,6 +132,52 @@ const OrderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    originalAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    coupon: {
+      code: {
+        type: String,
+        default: null,
+        trim: true,
+      },
+      discountAmount: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+    },
+    loyaltyPoints: {
+      pointsUsed: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      pointsValue: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+    },
+    promotion: {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Promotion",
+        default: null,
+      },
+      name: {
+        type: String,
+        default: null,
+        trim: true,
+      },
+      discountAmount: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+    },
     status: {
       type: String,
       enum: [
